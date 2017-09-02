@@ -32,6 +32,9 @@ class GiphyProvider: NSObject {
                 do {
                     
                     let dataJSON = try response.mapJSON()
+                    
+                    print(dataJSON)
+                    
                     var giphys = [Giphy]()
                     
                     if let dataDict = dataJSON as? [String : Any] {

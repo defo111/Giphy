@@ -11,7 +11,7 @@ import SDWebImage
 
 class SearchViewController: UIViewController {
     
-    //MARK: - Tvars
+    //MARK: - Types
     
     struct StoryboardIds {
         
@@ -32,11 +32,20 @@ class SearchViewController: UIViewController {
     @IBOutlet weak var collectionView: UICollectionView!
     @IBOutlet weak var searchTextFild: UITextField!
     @IBOutlet weak var searchButton: UIButton!
+    @IBOutlet weak var activityIndicator: UIActivityIndicatorView!
     
-    var giphys = [Giphy]()
-    
+    fileprivate var searchTag = ""
+    fileprivate var giphys = [Giphy]()
+    fileprivate let refreshControl = UIRefreshControl()
     
     // MARK: - Controller lifecycle
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        
+        collectionView.refreshControl = refreshControl
+        refreshControl.addTarget(self, action: #selector(refreshData(_:)), for: .valueChanged)
+    }
     
     override func viewWillLayoutSubviews() {
         super.viewWillLayoutSubviews()
@@ -48,8 +57,20 @@ class SearchViewController: UIViewController {
         flowLayout.invalidateLayout()
     }
     
-    // MARK: - Actions
+    // MARK: - Private methods
     
+    @objc private func refreshData(_ sender: Any) {
+        view.endEditing(true)
+        fetchAllGiphys(tag: searchTag)
+    }
+    
+    //MARK: - Keyboard
+    
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        self.view.endEditing(true)
+    }
+    
+    // MARK: - Actions
     
     @IBAction func searchTextFieldEditingChanged(_ sender: UITextField) {
         
@@ -61,13 +82,17 @@ class SearchViewController: UIViewController {
     }
     
     @IBAction func searchAction(_ sender: Any) {
-        fetchAllGiphys(tag: searchTextFild.text!)
+        view.endEditing(true)
+        searchTag = searchTextFild.text!
+        activityIndicator.isHidden = false
+        activityIndicator.startAnimating()
+        fetchAllGiphys(tag: searchTag)
     }
     
     // APIs
     
     private func fetchAllGiphys(tag: String) {
-        
+    
         GiphyProvider.getGiphys(tag: tag, completion: { [weak self] (result) in
             guard let strongSelf = self else {
                 return
@@ -79,9 +104,14 @@ class SearchViewController: UIViewController {
                 
                 strongSelf.giphys = giphys
                 strongSelf.collectionView.reloadData()
-                
+                strongSelf.refreshControl.endRefreshing()
+                strongSelf.activityIndicator.stopAnimating()
+                strongSelf.activityIndicator.isHidden = true
                 break
             case .failure(_):
+                strongSelf.refreshControl.endRefreshing()
+                strongSelf.activityIndicator.stopAnimating()
+                strongSelf.activityIndicator.isHidden = true
                 break
             default: break
             }
@@ -132,7 +162,6 @@ extension SearchViewController: UICollectionViewDelegate {
         let giphy = giphys[indexPath.row]
         performSegue(withIdentifier: StoryboardIds.kSegueToDetailsVC, sender: giphy)
     }
-    
 }
 
 // MARK: - UICollectionViewDelegateFlowLayout

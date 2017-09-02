@@ -32,6 +32,7 @@ class DetailsViewController: UIViewController {
         if let userAvatarUrl = giphy.authorAvatarURL {
             userAvatarImageView.sd_setImage(with: userAvatarUrl)
         }
+        
         userNameLabel.text = giphy.authorName
         soucreLabel.text = giphy.source
     }

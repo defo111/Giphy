@@ -49,9 +49,9 @@ class Giphy: NSObject {
         }
         
         if let user = data[JSONKeys.user.rawValue] as? [String: Any] {
-            
             authorName = user[JSONKeys.userName.rawValue] as! String
             authorAvatarURL = URL(string: user[JSONKeys.avatarUrl.rawValue] as! String)
         }
+        
     }
 }
